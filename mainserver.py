@@ -165,7 +165,7 @@ if __name__ == '__main__':
 				port = int(sys.argv[2])
 			except:
 				print "port not accept!"
-				return
+				sys.exit(0)
 			second = SecondServer(port)
 			second.run()
 	else:
