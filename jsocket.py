@@ -33,7 +33,7 @@ class JsonSocket(object):
 	def connect(self, address, port):
 		if self.tcp:
 			try:
-				self.socket.connect( (address, port) )
+				self.socket_obj.connect( (address, port) )
 				logger.debug("socket: connected to server")
 			except socket.error as msg:
 				logger.debug("socket: %s" %msg)

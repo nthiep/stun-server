@@ -160,7 +160,7 @@ if __name__ == '__main__':
 	primary_server = Server(SERVER_PORT, OTHER_PORT, 'udp')
 	primary_server.start()
 	if len(sys.argv) == 3:
-		if sys.argvp[1] == 'second':
+		if sys.argv[1] == 'second':
 			try:
 				port = int(sys.argv[2])
 			except:
