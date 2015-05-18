@@ -16,11 +16,11 @@ class JsonSocket(object):
 		self.tcp 		= False
 		if protocol == 'TCP':
 			self.tcp 	= True
-	def set_server(self, port=None):
 		if self.tcp:
 			self.socket_obj = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
 		else:
 			self.socket_obj= socket.socket( socket.AF_INET, socket.SOCK_DGRAM )
+	def set_server(self, port=None):
 		if port is None:
 			self.port 	= SERVER_PORT
 			self._bind(self.port)
