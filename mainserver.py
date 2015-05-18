@@ -86,7 +86,7 @@ class Server(Thread):
 				data, addr = self.sock.read_obj()
 				thread.start_new_thread(self.process, (data, addr))
 
-class SecondServer(object):
+class SecondServer(Thread):
 	""" second stun server """
 	def __init__(self, server_port):
 		super(SecondServer, self).__init__()
@@ -155,18 +155,12 @@ if __name__ == '__main__':
 	sys.stderr = MyLogger(logger, logging.ERROR)
 	# run main script
 	"""
+	if len(sys.argv) == 2:
+		if sys.argv[1] == 'second':
+			second = SecondServer(OTHER_SERVER_REQUEST)
+			second.start()
 	second_server = Server(OTHER_PORT, SERVER_PORT, 'udp', second=True)
 	second_server.start()
 	primary_server = Server(SERVER_PORT, OTHER_PORT, 'udp')
 	primary_server.start()
-	if len(sys.argv) == 3:
-		if sys.argv[1] == 'second':
-			try:
-				port = int(sys.argv[2])
-			except:
-				print "port not accept!"
-				sys.exit(0)
-			second = SecondServer(port)
-			second.run()
-	else:
-		primary_server.join()
+	primary_server.join()

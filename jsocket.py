@@ -34,18 +34,18 @@ class JsonSocket(object):
 		if self.tcp:
 			try:
 				self.socket_obj.connect( (address, port) )
-				logger.debug("socket: connected to server")
+				print "socket: connected to server"
 			except socket.error as msg:
-				logger.debug("socket: %s" %msg)
-				logger.debug("socket: can not connect to server")
+				print "socket: %s" %msg
+				print "socket: can not connect to server"
 				return False
 		else:
 			try:
 				self.peer = (address, port)
-				logger.debug("socket: UDP connected to server")
+				print "socket: UDP connected to server"
 			except socket.error as msg:
-				logger.debug("socket: %s" %msg)
-				logger.debug("socket: UDP can not connect to server")
+				print "socket: %s" %msg
+				print "socket: UDP can not connect to server"
 				return False
 		return True
 
