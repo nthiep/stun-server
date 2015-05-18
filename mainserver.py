@@ -15,12 +15,15 @@ from threading import Thread
 import logging.handlers, logging
 from stun import StunServer
 from jsocket import JsonSocket
-from config import SERVER_PORT, OTHER_PORT, OTHER_SERVER, OTHER_SERVER_REQUEST, LOG_FILENAME
+from config import SERVER_PORT, OTHER_PORT, OTHER_SERVER, LOG_FILENAME
+from config import OTHER_SERVER_REQUEST_TCP, OTHER_SERVER_REQUEST_UDP
 global SECOND_TCP_SOCK
 SECOND_TCP_SOCK=None
 global SECOND_UDP_SOCK
 SECOND_UDP_SOCK=None
 class Server(Thread):
+	TCP='TCP'
+	UDP='UDP'
 	def __init__(self, server_port, other_port, pro, second=False):
 		super(Server, self).__init__()
 		self.daemon 	= True
@@ -56,7 +59,11 @@ class Server(Thread):
 			return False
 		if request == 2:			
 			request_sock = JsonSocket(JsonSocket.TCP)
-			request_sock.connect(OTHER_SERVER, OTHER_SERVER_REQUEST)
+			if self.tcp:
+				request_sock.connect(OTHER_SERVER, OTHER_SERVER_REQUEST_TCP)
+			else:
+				request_sock.connect(OTHER_SERVER, OTHER_SERVER_REQUEST_UDP)
+
 			request_sock.send_obj(response)
 			request_sock.close()
 			return True
@@ -88,9 +95,14 @@ class Server(Thread):
 
 class SecondServer(Thread):
 	""" second stun server """
-	def __init__(self, server_port):
+	TCP = 'TCP'
+	UDP = 'UDP'
+	def __init__(self, server_port, pro):
 		super(SecondServer, self).__init__()
 		self.daemon 	= True
+		self.tcp = False
+		if pro == 'TCP':
+			self.tcp=True
 		self.server_port = server_port		
 		self.sock 	= JsonSocket(JsonSocket.TCP)
 		self.sock.set_server(server_port)
@@ -107,7 +119,16 @@ class SecondServer(Thread):
 			data	= conn.read_obj()
 			print "%s request %s" %(str(addr), data)
 			request_addr = self.get_addr(data)
-			SECOND_UDP_SOCK.send_obj(data, request_addr)
+			if self.tcp:
+				send_sock 	= JsonSocket(JsonSocket.TCP)
+				try:
+					send_sock.connect(request_addr[0], request_addr[1])
+					send_sock.send_obj(data)
+					send_sock.close()
+				except:
+					print "cant not connect to %s:%d" %request_addr
+			else:
+				SECOND_UDP_SOCK.send_obj(data, request_addr)
 			conn.close()
 			return True
 		except Exception, e:
@@ -157,10 +178,18 @@ if __name__ == '__main__':
 	"""
 	if len(sys.argv) == 2:
 		if sys.argv[1] == 'second':
-			second = SecondServer(OTHER_SERVER_REQUEST)
+			second = SecondServer(OTHER_SERVER_REQUEST_UDP, SecondServer.UDP)
 			second.start()
-	second_server = Server(OTHER_PORT, SERVER_PORT, 'udp', second=True)
+
+			second_tcp = SecondServer(OTHER_SERVER_REQUEST_TCP, SecondServer.TCP)
+			second_tcp.start()
+	second_server = Server(OTHER_PORT, SERVER_PORT, Server.UDP, second=True)
 	second_server.start()
-	primary_server = Server(SERVER_PORT, OTHER_PORT, 'udp')
+	primary_server = Server(SERVER_PORT, OTHER_PORT, Server.UDP)
 	primary_server.start()
-	primary_server.join()
+	
+	second_server_tcp = Server(OTHER_PORT, SERVER_PORT, Server.TCP, second=True)
+	second_server_tcp.start()
+	primary_server_tcp = Server(SERVER_PORT, OTHER_PORT, Server.TCP)
+	primary_server_tcp.start()
+	primary_server_tcp.join()
