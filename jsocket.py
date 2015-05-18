@@ -14,6 +14,7 @@ class JsonSocket(object):
 	UDP = 'UDP'
 	def __init__(self, protocol):
 		self.tcp 		= False
+		self._timeout = 3
 		if protocol == 'TCP':
 			self.tcp 	= True
 		if self.tcp:
@@ -111,7 +112,6 @@ class JsonSocket(object):
 
 	def accept_connection(self):
 		conn, addr = self._accept()
-		conn.settimeout(self._timeout)
 		return conn, addr
 
 	def close(self):
